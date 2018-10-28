@@ -335,6 +335,21 @@ class JoystickController(object):
 
                 print('max_throttle:', self.max_throttle)
 
+            if button == 'square' and button_state == 1:
+                """
+                pause for "delivery"
+                """
+                old_throttle = self.throttle
+                self.throttle = 0.0
+
+                print('pause for delivery; throttle:', self.throttle)
+
+                # could be longer - kept short for demo vid
+                time.sleep(10.0)
+
+                self.throttle = old_throttle
+                print('delivery complete - resume; throttle:', self.throttle)
+
             if button == 'base' and button_state == 1:
                 """
                 increase throttle scale

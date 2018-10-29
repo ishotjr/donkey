@@ -4,6 +4,11 @@ import array
 import time
 import struct
 
+from gps3.agps3threaded import AGPS3mechanism
+agps_thread = AGPS3mechanism()  # Instantiate AGPS3 Mechanisms
+agps_thread.stream_data()  # From localhost (), or other hosts, by example, (host='gps.ddns.net')
+agps_thread.run_thread()  # Throttle time to sleep after an empty lookup, default '()' 0.2 two tenths of a second
+
 
 from donkeycar.parts.web_controller.web import LocalWebController
 
@@ -164,6 +169,14 @@ class Joystick():
         button_state = None
         axis = None
         axis_val = None
+
+
+        print('time:', agps_thread.data_stream.time)
+        print('latitude:', agps_thread.data_stream.lat)
+        print('longitude:', agps_thread.data_stream.lon)
+        print('track:', agps_thread.data_stream.track)
+        print('track:', agps_thread.data_stream.track)
+
 
         # Main event loop
         evbuf = self.jsdev.read(8)

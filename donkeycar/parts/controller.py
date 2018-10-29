@@ -4,6 +4,8 @@ import array
 import time
 import struct
 
+from donkeycar.util.picket import Fence
+
 from gps3.agps3threaded import AGPS3mechanism
 agps_thread = AGPS3mechanism()  # Instantiate AGPS3 Mechanisms
 agps_thread.stream_data()  # From localhost (), or other hosts, by example, (host='gps.ddns.net')
@@ -11,6 +13,15 @@ agps_thread.run_thread()  # Throttle time to sleep after an empty lookup, defaul
 
 
 from donkeycar.parts.web_controller.web import LocalWebController
+
+# delivery waypoint
+delivery = Fence()
+delivery.add_point((REPLACE, THESE))
+delivery.add_point((WITH, YOUR))
+delivery.add_point((LATITUDES, LONGITUDES))
+delivery.add_point((OF, CHOICE))
+delivery_made = False
+
 
 class Joystick():
     """
@@ -171,11 +182,11 @@ class Joystick():
         axis_val = None
 
 
-        print('time:', agps_thread.data_stream.time)
-        print('latitude:', agps_thread.data_stream.lat)
-        print('longitude:', agps_thread.data_stream.lon)
-        print('track:', agps_thread.data_stream.track)
-        print('track:', agps_thread.data_stream.track)
+        print('    time:', agps_thread.data_stream.time)
+        print('    latitude:', agps_thread.data_stream.lat)
+        print('    longitude:', agps_thread.data_stream.lon)
+        print('    speed:', agps_thread.data_stream.speed)
+        print('    track:', agps_thread.data_stream.track)
 
 
         # Main event loop
@@ -350,7 +361,7 @@ class JoystickController(object):
 
             if button == 'square' and button_state == 1:
                 """
-                pause for "delivery"
+                pause for "delivery" (manual)
                 """
                 old_throttle = self.throttle
                 self.throttle = 0.0
@@ -404,6 +415,28 @@ class JoystickController(object):
                     self.throttle = self.max_throttle
                     self.on_throttle_changes()
                 print('constant_throttle:', self.constant_throttle)
+
+            if not delivery_made and delivery.check_point((agps_thread.data_stream.lat, agps_thread.data_stream.lon)):
+                """
+                pause for "delivery" (geofence)
+                """
+                old_throttle = self.throttle
+                self.throttle = 0.0
+
+                print('geofence entered!', agps_thread.data_stream.time)
+                print('latitude:', agps_thread.data_stream.lat)
+                print('longitude:', agps_thread.data_stream.lon)
+                print('pause for delivery; throttle:', self.throttle)
+
+                # could be longer - kept short for demo vid
+                time.sleep(10.0)
+
+                # only stop once or we'll never move again!
+                global delivery_made
+                delivery_made = True
+
+                self.throttle = old_throttle
+                print('delivery complete - resume; throttle:', self.throttle)
 
             time.sleep(self.poll_delay)
 
